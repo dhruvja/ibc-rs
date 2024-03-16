@@ -51,6 +51,8 @@ pub enum Error {
     NegativeMaxClockDrift,
     /// missing latest height
     MissingLatestHeight,
+    /// decode error: `{0}`
+    Decode(prost::DecodeError),
     /// invalid raw header error: `{0}`
     InvalidRawHeader(TendermintError),
     /// invalid raw misbehaviour: `{reason}`

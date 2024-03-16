@@ -16,6 +16,8 @@ use tendermint::block::signed_header::SignedHeader;
 use tendermint::chain::Id as TmChainId;
 use tendermint::validator::Set as ValidatorSet;
 use tendermint_light_client_verifier::types::{TrustedBlockState, UntrustedBlockState};
+use bytes::Buf;
+use prost::Message;
 
 use crate::consensus_state::ConsensusState as TmConsensusState;
 use crate::error::Error;
@@ -186,19 +188,18 @@ impl TryFrom<Any> for Header {
     type Error = ClientError;
 
     fn try_from(raw: Any) -> Result<Self, Self::Error> {
-        fn decode_header(value: &[u8]) -> Result<Header, ClientError> {
-            let header = Protobuf::<RawHeader>::decode(value).map_err(|e| ClientError::Other {
-                description: e.to_string(),
-            })?;
-            Ok(header)
-        }
+        use core::ops::Deref;
         match raw.type_url.as_str() {
-            TENDERMINT_HEADER_TYPE_URL => decode_header(&raw.value),
+            TENDERMINT_HEADER_TYPE_URL => decode_header(raw.value.deref()).map_err(Into::into),
             _ => Err(ClientError::UnknownHeaderType {
                 header_type: raw.type_url,
             }),
         }
     }
+}
+
+fn decode_header<B: Buf>(buf: B) -> Result<Header, Error> {
+    RawHeader::decode(buf).map_err(Error::Decode)?.try_into()
 }
 
 impl From<Header> for Any {
