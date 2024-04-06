@@ -111,8 +111,7 @@ tendermint-proto = { version = "0.34.0", default-features = false }
 tendermint-rpc = { version = "0.34.0", default-features = false }
 tendermint-testgen = { version = "0.34.0", default-features = false }
 
-# lib = { git = "https://github.com/ComposableFi/emulated-light-client", default-features = false }
-lib = { path = "../emulated-light-client/common/lib", default-features = false } 
+lib = { git = "https://github.com/ComposableFi/emulated-light-client", default-features = false }
 
 # parity dependencies
 parity-scale-codec = { version = "3.6.5", default-features = false, features = [
