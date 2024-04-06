@@ -25,6 +25,12 @@ displaydoc      = { workspace = true }
 schemars        = { workspace = true, optional = true }
 serde           = { workspace = true, optional = true }
 subtle-encoding = { workspace = true }
+lib = { workspace = true }
+sha2 = { workspace = true }
+sha3 = { workspace = true }
+ripemd = { workspace = true }
+blake2 = { workspace = true }
+blake3 = { workspace = true }
 
 # ibc dependencies
 ibc-proto       = { workspace = true }

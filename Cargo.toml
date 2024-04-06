@@ -64,6 +64,10 @@ serde_json = { package = "serde-json-wasm", version = "1.0.1", default-features 
 subtle-encoding = { version = "0.5", default-features = false }
 prost = { version = "0.12.3", default-features = false }
 bytes = { version = "1.5.0", default-features = false }
+sha3 = {version = "0.10.2", default-features = false }
+ripemd = {version = "0.1.1", default-features = false }
+blake2 = { version = "0.10.6", default-features = false }
+blake3 = { version = "1.5.0" }
 
 # ibc dependencies
 ibc = { version = "0.50.0", path = "./ibc", default-features = false }
@@ -106,6 +110,9 @@ tendermint-light-client-verifier = { version = "0.34.0", default-features = fals
 tendermint-proto = { version = "0.34.0", default-features = false }
 tendermint-rpc = { version = "0.34.0", default-features = false }
 tendermint-testgen = { version = "0.34.0", default-features = false }
+
+# lib = { git = "https://github.com/ComposableFi/emulated-light-client", default-features = false }
+lib = { path = "../emulated-light-client/common/lib", default-features = false } 
 
 # parity dependencies
 parity-scale-codec = { version = "3.6.5", default-features = false, features = [

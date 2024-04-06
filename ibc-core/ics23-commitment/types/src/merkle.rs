@@ -8,6 +8,11 @@ use ibc_proto::ics23::{
     NonExistenceProof,
 };
 use ibc_proto::Protobuf;
+use ics23::HostFunctionsProvider;
+use ripemd::Ripemd160;
+use sha2::{Digest, Sha512, Sha512_256};
+use sha3::Keccak256;
+use blake2::{Blake2b512, Blake2s256};
 
 use crate::commitment::{CommitmentPrefix, CommitmentRoot};
 use crate::error::CommitmentError;
@@ -52,6 +57,63 @@ impl From<MerkleProof> for RawMerkleProof {
     }
 }
 
+pub struct HostFunctionsManager;
+impl HostFunctionsProvider for HostFunctionsManager {
+    fn sha2_256(message: &[u8]) -> [u8; 32] {
+        let digest = lib::hash::CryptoHash::digest(message);
+        let mut buf = [0u8; 32];
+        buf.copy_from_slice(&digest.as_slice());
+        buf
+    }
+
+    fn sha2_512(message: &[u8]) -> [u8; 64] {
+        let digest = Sha512::digest(message);
+        let mut buf = [0u8; 64];
+        buf.copy_from_slice(&digest);
+        buf
+    }
+
+    fn sha2_512_truncated(message: &[u8]) -> [u8; 32] {
+        let digest = Sha512_256::digest(message);
+        let mut buf = [0u8; 32];
+        buf.copy_from_slice(&digest);
+        buf
+    }
+
+    fn keccak_256(message: &[u8]) -> [u8; 32] {
+        let digest = Keccak256::digest(message);
+        let mut buf = [0u8; 32];
+        buf.copy_from_slice(&digest);
+        buf
+    }
+
+    fn ripemd160(message: &[u8]) -> [u8; 20] {
+        let digest = Ripemd160::digest(message);
+        let mut buf = [0u8; 20];
+        buf.copy_from_slice(&digest);
+        buf
+    }
+
+    fn blake2b_512(message: &[u8]) -> [u8; 64] {
+        let digest = Blake2b512::digest(message);
+        let mut buf = [0u8; 64];
+        buf.copy_from_slice(&digest);
+        buf
+    }
+
+    fn blake2s_256(message: &[u8]) -> [u8; 32] {
+        let digest = Blake2s256::digest(message);
+        let mut buf = [0u8; 32];
+        buf.copy_from_slice(&digest);
+        buf
+    }
+
+    fn blake3(message: &[u8]) -> [u8; 32] {
+        blake3::hash(message).into()
+    }
+}
+
+#[allow(unreachable_code)]
 impl MerkleProof {
     pub fn verify_membership(
         &self,
@@ -96,11 +158,9 @@ impl MerkleProof {
         {
             match &proof.proof {
                 Some(Proof::Exist(existence_proof)) => {
-                    subroot =
-                        calculate_existence_root::<ics23::HostFunctionsManager>(existence_proof)
-                            .map_err(|_| CommitmentError::InvalidMerkleProof)?;
-
-                    if !verify_membership::<ics23::HostFunctionsManager>(
+                    subroot = calculate_existence_root::<HostFunctionsManager>(existence_proof)
+                        .map_err(|_| CommitmentError::InvalidMerkleProof)?;
+                    if !verify_membership::<HostFunctionsManager>(
                         proof,
                         spec,
                         &subroot,
@@ -161,7 +221,7 @@ impl MerkleProof {
             Some(Proof::Nonexist(non_existence_proof)) => {
                 let subroot = calculate_non_existence_root(non_existence_proof)?;
 
-                if !verify_non_membership::<ics23::HostFunctionsManager>(
+                if !verify_non_membership::<HostFunctionsManager>(
                     proof,
                     spec,
                     &subroot,
@@ -181,10 +241,10 @@ impl MerkleProof {
 // TODO move to ics23
 fn calculate_non_existence_root(proof: &NonExistenceProof) -> Result<Vec<u8>, CommitmentError> {
     if let Some(left) = &proof.left {
-        calculate_existence_root::<ics23::HostFunctionsManager>(left)
+        calculate_existence_root::<HostFunctionsManager>(left)
             .map_err(|_| CommitmentError::InvalidMerkleProof)
     } else if let Some(right) = &proof.right {
-        calculate_existence_root::<ics23::HostFunctionsManager>(right)
+        calculate_existence_root::<HostFunctionsManager>(right)
             .map_err(|_| CommitmentError::InvalidMerkleProof)
     } else {
         Err(CommitmentError::InvalidMerkleProof)
