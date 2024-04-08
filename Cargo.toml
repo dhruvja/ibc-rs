@@ -112,7 +112,7 @@ tendermint-proto = { version = "0.34.0", default-features = false }
 tendermint-rpc = { version = "0.34.0", default-features = false }
 tendermint-testgen = { version = "0.34.0", default-features = false }
 
-lib = { path = "../emulated-light-client/common/lib", default-features = false , features = ["solana-program"] }
+lib = { path = "http://github.com/composableFi/emulated-light-client", default-features = false , features = ["solana-program"] }
 
 # parity dependencies
 parity-scale-codec = { version = "3.6.5", default-features = false, features = [
