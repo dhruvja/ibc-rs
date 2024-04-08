@@ -39,6 +39,15 @@ where
         update_state(self.inner(), ctx, client_id, header)
     }
 
+    fn update_tm_state(
+        &self,
+        ctx: &mut E,
+        client_id: &ClientId,
+        header: Option<TmHeader>,
+    ) -> Result<Vec<Height>, ClientError> {
+        update_tm_state(self.inner(), ctx, client_id, header)
+    }
+
     fn update_state_on_misbehaviour(
         &self,
         ctx: &mut E,
@@ -127,6 +136,68 @@ where
     <E as ClientExecutionContext>::AnyConsensusState: From<ConsensusStateType>,
 {
     let header = TmHeader::try_from(header)?;
+    let header_height = header.height();
+
+    prune_oldest_consensus_state(client_state, ctx, client_id)?;
+
+    let maybe_existing_consensus_state = {
+        let path_at_header_height = ClientConsensusStatePath::new(
+            client_id.clone(),
+            header_height.revision_number(),
+            header_height.revision_height(),
+        );
+
+        CommonContext::consensus_state(ctx, &path_at_header_height).ok()
+    };
+
+    if maybe_existing_consensus_state.is_some() {
+        // if we already had the header installed by a previous relayer
+        // then this is a no-op.
+        //
+        // Do nothing.
+    } else {
+        let host_timestamp = CommonContext::host_timestamp(ctx)?;
+        let host_height = CommonContext::host_height(ctx)?;
+
+        let new_consensus_state = ConsensusStateType::from(header.clone());
+        let new_client_state = client_state.clone().with_header(header)?;
+
+        ctx.store_consensus_state(
+            ClientConsensusStatePath::new(
+                client_id.clone(),
+                header_height.revision_number(),
+                header_height.revision_height(),
+            ),
+            new_consensus_state.into(),
+        )?;
+        ctx.store_client_state(
+            ClientStatePath::new(client_id.clone()),
+            new_client_state.into(),
+        )?;
+        ctx.store_update_meta(
+            client_id.clone(),
+            header_height,
+            host_timestamp,
+            host_height,
+        )?;
+    }
+
+    Ok(vec![header_height])
+}
+
+pub fn update_tm_state<E>(
+    client_state: &ClientStateType,
+    ctx: &mut E,
+    client_id: &ClientId,
+    header: Option<TmHeader>,
+) -> Result<Vec<Height>, ClientError>
+where
+    E: TmExecutionContext + ExecutionContext,
+    <E as ClientExecutionContext>::AnyClientState: From<ClientStateType>,
+    <E as ClientExecutionContext>::AnyConsensusState: From<ConsensusStateType>,
+{
+    // let header = TmHeader::try_from(header)?;
+    let header = header.unwrap();
     let header_height = header.height();
 
     prune_oldest_consensus_state(client_state, ctx, client_id)?;

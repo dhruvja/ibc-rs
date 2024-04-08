@@ -27,8 +27,28 @@ pub fn dispatch(
     router: &mut impl Router,
     msg: MsgEnvelope,
 ) -> Result<(), ContextError> {
-    validate(ctx, router, msg.clone())?;
-    execute(ctx, router, msg)
+
+    if matches!(msg, MsgEnvelope::Client(ClientMsg::UpdateClient(_))) {
+        let header = match msg {
+            MsgEnvelope::Client(ref msg) => match msg {
+                ClientMsg::UpdateClient(msg) => msg,
+                _ => panic!("Invalid message type"),
+            },
+            _ => panic!("Invalid message type"),
+        };
+        let header = ibc_client_tendermint_types::Header::try_from(header.clone().client_message).unwrap();
+        validate(ctx, router, msg.clone(), Some(header.clone()))?;
+        // solana_program::msg!("Before execute");
+        // solana_program::log::sol_log_compute_units();
+        execute(ctx, router, msg, Some(header))?;
+        // solana_program::log::sol_log_compute_units();
+        // solana_program::msg!("After execute");
+    } else {
+        validate(ctx, router, msg.clone(), None)?;
+        execute(ctx, router, msg, None)?;
+    }
+    
+    Ok(())
 }
 
 /// Entrypoint which only performs message validation
@@ -39,7 +59,7 @@ pub fn dispatch(
 /// That is, the state transition of message `i` must be applied before
 /// message `i+1` is validated. This is equivalent to calling
 /// `dispatch()` on each successively.
-pub fn validate<Ctx>(ctx: &Ctx, router: &impl Router, msg: MsgEnvelope) -> Result<(), ContextError>
+pub fn validate<Ctx>(ctx: &Ctx, router: &impl Router, msg: MsgEnvelope, header: Option<ibc_client_tendermint_types::Header>) -> Result<(), ContextError>
 where
     Ctx: ValidationContext,
 {
@@ -47,10 +67,10 @@ where
         MsgEnvelope::Client(msg) => match msg {
             ClientMsg::CreateClient(msg) => create_client::validate(ctx, msg),
             ClientMsg::UpdateClient(msg) => {
-                update_client::validate(ctx, MsgUpdateOrMisbehaviour::UpdateClient(msg))
+                update_client::validate(ctx, MsgUpdateOrMisbehaviour::UpdateClient(msg), header)
             }
             ClientMsg::Misbehaviour(msg) => {
-                update_client::validate(ctx, MsgUpdateOrMisbehaviour::Misbehaviour(msg))
+                update_client::validate(ctx, MsgUpdateOrMisbehaviour::Misbehaviour(msg), header)
             }
             ClientMsg::UpgradeClient(msg) => upgrade_client::validate(ctx, msg),
         },
@@ -110,6 +130,7 @@ pub fn execute<Ctx>(
     ctx: &mut Ctx,
     router: &mut impl Router,
     msg: MsgEnvelope,
+    header: Option<ibc_client_tendermint_types::Header>
 ) -> Result<(), ContextError>
 where
     Ctx: ExecutionContext,
@@ -118,10 +139,10 @@ where
         MsgEnvelope::Client(msg) => match msg {
             ClientMsg::CreateClient(msg) => create_client::execute(ctx, msg),
             ClientMsg::UpdateClient(msg) => {
-                update_client::execute(ctx, MsgUpdateOrMisbehaviour::UpdateClient(msg))
+                update_client::execute(ctx, MsgUpdateOrMisbehaviour::UpdateClient(msg), header)
             }
             ClientMsg::Misbehaviour(msg) => {
-                update_client::execute(ctx, MsgUpdateOrMisbehaviour::Misbehaviour(msg))
+                update_client::execute(ctx, MsgUpdateOrMisbehaviour::Misbehaviour(msg), header)
             }
             ClientMsg::UpgradeClient(msg) => upgrade_client::execute(ctx, msg),
         },

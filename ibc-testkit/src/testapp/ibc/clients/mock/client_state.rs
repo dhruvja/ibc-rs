@@ -237,6 +237,13 @@ where
         Ok(())
     }
 
+    fn verify_tm_client_message(
+        &self,
+        _ctx: &V,
+        _client_id: &ClientId,
+        _client_message: Option<ibc_client_tendermint_types::Header>,
+    ) -> Result<(), ClientError> { Ok(()) }
+
     fn check_for_misbehaviour(
         &self,
         _ctx: &V,
@@ -354,6 +361,15 @@ where
         )?;
 
         Ok(vec![header_height])
+    }
+
+    fn update_tm_state(
+        &self,
+        ctx: &mut E,
+        client_id: &ClientId,
+        header: Option<ibc_client_tendermint_types::Header>,
+    ) -> Result<Vec<Height>, ClientError> { 
+        Ok(Vec::new())
     }
 
     fn update_state_on_misbehaviour(

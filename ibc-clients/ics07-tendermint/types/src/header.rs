@@ -136,6 +136,12 @@ impl Header {
             });
         }
 
+        // solana_program::msg!("Before hashing");
+        // solana_program::log::sol_log_compute_units();
+        // let _hash = self.validator_set.hash();
+        // solana_program::msg!("After hashing");
+        // solana_program::log::sol_log_compute_units();
+
         if self.validator_set.hash() != self.signed_header.header.validators_hash {
             return Err(Error::MismatchValidatorsHashes {
                 signed_header_validators_hash: self.signed_header.header.validators_hash,

@@ -23,7 +23,11 @@ where
     V: TmValidationContext,
 {
     // Checks that the header fields are valid.
+    // solana_program::msg!("Before validate basic");
+    // solana_program::log::sol_log_compute_units();
     header.validate_basic()?;
+    // solana_program::msg!("After validate basic");
+    // solana_program::log::sol_log_compute_units();
 
     // The tendermint-light-client crate though works on heights that are assumed
     // to have the same revision number. We ensure this here.
@@ -45,7 +49,11 @@ where
                     description: err.to_string(),
                 })?;
 
+            // solana_program::msg!("Before check trusted next validator set");
+            // solana_program::log::sol_log_compute_units();
             header.check_trusted_next_validator_set(trusted_consensus_state.inner())?;
+            // solana_program::msg!("After check trusted next validator set");
+            // solana_program::log::sol_log_compute_units();
 
             TrustedBlockState {
                 chain_id: &client_state.chain_id.to_string().try_into().map_err(|e| {
@@ -86,11 +94,15 @@ where
                     description: "host timestamp is not a valid TM timestamp".to_string(),
                 })?;
 
+        // solana_program::msg!("Before Sending verifier");
+        // solana_program::log::sol_log_compute_units();
         // main header verification, delegated to the tendermint-light-client crate.
         verifier
             .verifier()
             .verify_update_header(untrusted_state, trusted_state, &options, now)
             .into_result()?;
+        // solana_program::msg!("After Sending verifier");
+        // solana_program::log::sol_log_compute_units();
     }
 
     Ok(())

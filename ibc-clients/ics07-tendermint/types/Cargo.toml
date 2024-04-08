@@ -24,6 +24,7 @@ displaydoc = { workspace = true }
 serde = { workspace = true, optional = true }
 bytes = { workspace = true }
 prost = { workspace = true }
+solana-program = { workspace = true }
 
 # ibc dependencies
 ibc-core-client-types = { workspace = true }

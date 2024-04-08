@@ -9,12 +9,11 @@ use ibc_core_handler_types::error::ContextError;
 use ibc_core_handler_types::events::{IbcEvent, MessageEvent};
 use ibc_core_host::types::identifiers::{ClientId, ConnectionId};
 use ibc_core_host::types::path::{
-    ClientConnectionPath, ClientConsensusStatePath, ClientStatePath, ConnectionPath, Path,
+    ClientConnectionPath, ClientConsensusStatePath, ClientStatePath, ConnectionPath, Path
 };
 use ibc_core_host::{ExecutionContext, ValidationContext};
-use ibc_primitives::prelude::*;
+use ibc_primitives::{prelude::*, ToVec};
 use ibc_primitives::proto::Protobuf;
-use ibc_primitives::ToVec;
 
 pub fn validate<Ctx>(ctx_b: &Ctx, msg: MsgConnectionOpenTry) -> Result<(), ContextError>
 where
@@ -34,7 +33,7 @@ where
 {
     ctx_b.validate_message_signer(&msg.signer)?;
 
-    ctx_b.validate_self_client(msg.client_state_of_b_on_a.clone())?;
+    // ctx_b.validate_self_client(msg.client_state_of_b_on_a.clone())?;
 
     let host_height = ctx_b.host_height().map_err(|_| ConnectionError::Other {
         description: "failed to get host height".to_string(),
@@ -69,7 +68,7 @@ where
 
         let prefix_on_a = vars.conn_end_on_b.counterparty().prefix();
         let prefix_on_b = ctx_b.commitment_prefix();
-
+        // solana_program::log::sol_log_compute_units();
         {
             let expected_conn_end_on_a = ConnectionEnd::new(
                 State::Init,
@@ -89,6 +88,7 @@ where
                 )
                 .map_err(ConnectionError::VerifyConnectionState)?;
         }
+        // solana_program::log::sol_log_compute_units();
 
         client_state_of_a_on_b
             .verify_membership(
@@ -102,6 +102,7 @@ where
                 client_id: msg.client_id_on_b.clone(),
                 client_error: e,
             })?;
+        // solana_program::log::sol_log_compute_units();
 
         let expected_consensus_state_of_b_on_a =
             ctx_b.host_consensus_state(&msg.consensus_height_of_b_on_a)?;
@@ -111,7 +112,7 @@ where
             msg.consensus_height_of_b_on_a.revision_number(),
             msg.consensus_height_of_b_on_a.revision_height(),
         );
-
+        solana_program::log::sol_log_compute_units();
         client_state_of_a_on_b
             .verify_membership(
                 prefix_on_a,
@@ -124,6 +125,7 @@ where
                 height: msg.proofs_height_on_a,
                 client_error: e,
             })?;
+        // solana_program::log::sol_log_compute_units();
     }
 
     Ok(())
@@ -159,14 +161,14 @@ where
     ctx_b.emit_ibc_event(IbcEvent::Message(MessageEvent::Connection))?;
     ctx_b.emit_ibc_event(event)?;
     ctx_b.log_message("success: conn_open_try verification passed".to_string())?;
-
+    solana_program::log::sol_log_compute_units();
     ctx_b.increase_connection_counter()?;
     ctx_b.store_connection_to_client(
         &ClientConnectionPath::new(msg.client_id_on_b),
         vars.conn_id_on_b.clone(),
     )?;
     ctx_b.store_connection(&ConnectionPath::new(&vars.conn_id_on_b), vars.conn_end_on_b)?;
-
+    solana_program::log::sol_log_compute_units();
     Ok(())
 }
 

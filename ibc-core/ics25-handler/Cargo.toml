@@ -26,6 +26,8 @@ ibc-core-router           = { workspace = true }
 ibc-core-handler-types    = { workspace = true }
 ibc-core-host             = { workspace = true }
 ibc-primitives            = { workspace = true }
+ibc-client-tendermint-types = { workspace = true }
+solana-program = { workspace = true }
 
 [features]
 default = ["std"]

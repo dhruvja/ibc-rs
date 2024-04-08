@@ -29,6 +29,14 @@ pub(crate) fn impl_ClientStateValidation(
         imports,
     );
 
+    let verify_tm_client_message_impl = delegate_call_in_match(
+        client_state_enum_name,
+        enum_variants.iter(),
+        opts,
+        quote! { verify_tm_client_message(cs, ctx, client_id, client_message) },
+        imports,
+    );
+
     let status_impl = delegate_call_in_match(
         client_state_enum_name,
         enum_variants.iter(),
@@ -43,6 +51,7 @@ pub(crate) fn impl_ClientStateValidation(
     let ClientError = imports.client_error();
     let ClientStateValidation = imports.client_state_validation();
     let Status = imports.status();
+    let TMHeader = imports.tm_header();
 
     // The types we need for the generated code.
     let HostClientState = client_state_enum_name;
@@ -68,6 +77,17 @@ pub(crate) fn impl_ClientStateValidation(
                 }
             }
 
+            fn verify_tm_client_message(
+                &self,
+                ctx: &#ClientValidationContext,
+                client_id: &#ClientId,
+                client_message: core::option::Option<#TMHeader>,
+            ) -> core::result::Result<(), #ClientError> {
+                match self {
+                    #(#verify_tm_client_message_impl),*
+                }
+            }
+
             fn check_for_misbehaviour(
                 &self,
                 ctx: &#ClientValidationContext,
@@ -89,6 +109,8 @@ pub(crate) fn impl_ClientStateValidation(
                 }
 
             }
+
+
         }
 
     }

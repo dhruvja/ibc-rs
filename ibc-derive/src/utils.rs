@@ -20,7 +20,7 @@ impl Imports {
     pub fn new(crate_name: SupportedCrate) -> Self {
         let prefix = match crate_name {
             SupportedCrate::Ibc => quote! {::ibc::core},
-            SupportedCrate::IbcCore => quote! {::ibc_core},
+            SupportedCrate::IbcCore => quote! {::ibc::core},
         };
 
         Self { prefix }
@@ -105,6 +105,11 @@ impl Imports {
     pub fn status(&self) -> TokenStream {
         let prefix = self.prefix();
         quote! {#prefix::client::types::Status}
+    }
+
+    pub fn tm_header(&self) -> TokenStream {
+        let prefix = quote!{ ::ibc_client_tendermint_types };
+        quote! {#prefix::Header}
     }
 }
 

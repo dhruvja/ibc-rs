@@ -158,8 +158,10 @@ impl MerkleProof {
         {
             match &proof.proof {
                 Some(Proof::Exist(existence_proof)) => {
-                    subroot = calculate_existence_root::<HostFunctionsManager>(existence_proof)
-                        .map_err(|_| CommitmentError::InvalidMerkleProof)?;
+                    subroot =
+                        calculate_existence_root::<HostFunctionsManager>(existence_proof)
+                            .map_err(|_| CommitmentError::InvalidMerkleProof)?;
+                    // solana_program::msg!("THis is proof {:?}", proof);
                     if !verify_membership::<HostFunctionsManager>(
                         proof,
                         spec,
@@ -167,6 +169,7 @@ impl MerkleProof {
                         key.as_bytes(),
                         &value,
                     ) {
+                        panic!("This is verification failure with value {:?}", value);
                         return Err(CommitmentError::VerificationFailure);
                     }
                     value = subroot.clone();
@@ -176,6 +179,10 @@ impl MerkleProof {
         }
 
         if root.hash != subroot {
+            panic!(
+                "This is state root failure root hash{:?} and subroot {:?}",
+                root.hash, subroot
+            );
             return Err(CommitmentError::VerificationFailure);
         }
 
