@@ -242,7 +242,7 @@ where
         _ctx: &V,
         _client_id: &ClientId,
         _client_message: Option<ibc_client_tendermint_types::Header>,
-    ) -> Result<(), ClientError> { Ok(()) }
+    ) -> Result<(), ClientError> { unimplemented!("Not implemented for mocks") }
 
     fn check_for_misbehaviour(
         &self,
@@ -369,7 +369,7 @@ where
         client_id: &ClientId,
         header: Option<ibc_client_tendermint_types::Header>,
     ) -> Result<Vec<Height>, ClientError> { 
-        Ok(Vec::new())
+        unimplemented!("Not supported for mocks")
     }
 
     fn update_state_on_misbehaviour(

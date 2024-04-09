@@ -27,6 +27,13 @@ pub(crate) fn impl_ClientStateExecution(
         quote! { update_state(cs, ctx, client_id, header) },
         imports,
     );
+    let update_tm_state_impl = delegate_call_in_match(
+        client_state_enum_name,
+        enum_variants.iter(),
+        opts,
+        quote! { update_tm_state_impl(cs, ctx, client_id, header) },
+        imports,
+    );
     let update_state_on_misbehaviour_impl = delegate_call_in_match(
         client_state_enum_name,
         enum_variants.iter(),
@@ -49,6 +56,7 @@ pub(crate) fn impl_ClientStateExecution(
     let ClientError = imports.client_error();
     let ClientStateExecution = imports.client_state_execution();
     let Height = imports.height();
+    let TMHeader = imports.tm_header();
 
     // The types we need for the generated code.
     let HostClientState = client_state_enum_name;
@@ -84,6 +92,17 @@ pub(crate) fn impl_ClientStateExecution(
                     #(#update_state_impl),*
                 }
             }
+
+            fn update_tm_state(
+                &self,
+                ctx: &mut #ClientExecutionContext,
+                client_id: &#ClientId,
+                header: core::option::Option<#TMHeader>,
+            ) -> core::result::Result<Vec<#Height>, #ClientError> {
+                match self {
+                    #(#update_tm_state_impl),*
+                }
+            } 
 
             fn update_state_on_misbehaviour(
                 &self,
