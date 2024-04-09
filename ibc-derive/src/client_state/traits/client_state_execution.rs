@@ -31,7 +31,7 @@ pub(crate) fn impl_ClientStateExecution(
         client_state_enum_name,
         enum_variants.iter(),
         opts,
-        quote! { update_tm_state_impl(cs, ctx, client_id, header) },
+        quote! { update_tm_state(cs, ctx, client_id, header) },
         imports,
     );
     let update_state_on_misbehaviour_impl = delegate_call_in_match(
